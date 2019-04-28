@@ -1,11 +1,11 @@
-'use strict';
-import { DynamoDB } from 'aws-sdk';
-import * as uuidv4 from 'uuid/v4';
-import Profile from '../types/profile';
+"use strict";
+import { DynamoDB } from "aws-sdk";
+import * as uuidv4 from "uuid/v4";
+import Profile from "../types/profile";
 
 const dynamoDb = new DynamoDB.DocumentClient({
-  region: 'localhost',
-  endpoint: 'http://localhost:8000'
+  region: "localhost",
+  endpoint: "http://localhost:8000"
 });
 
 export const createDefaultProfile = async ({ account_id }: any) => {
@@ -20,9 +20,9 @@ export const createDefaultProfile = async ({ account_id }: any) => {
       activated: true,
       createdAt: new Date().toISOString()
     },
-    ConditionExpression: 'NOT contains(sort_key, :profile)',
+    ConditionExpression: "NOT contains(sort_key, :profile)",
     ExpressionAttributeValues: {
-      ':profile': Profile.DEFAULT
+      ":profile": Profile.DEFAULT
     }
   };
 
@@ -30,7 +30,7 @@ export const createDefaultProfile = async ({ account_id }: any) => {
     await dynamoDb.put(params).promise();
     return {
       account_id,
-      result: 'OK'
+      result: "OK"
     };
   } catch (error) {
     return {
@@ -50,18 +50,18 @@ export const setActivateStateDefaultProfile = async ({
       id: account_id,
       sort_key: Profile.DEFAULT
     },
-    UpdateExpression: 'SET updatedAt = :updatedAt, activated = :value',
-    ConditionExpression: 'attribute_exists(createdAt)',
+    UpdateExpression: "SET updatedAt = :updatedAt, activated = :value",
+    ConditionExpression: "attribute_exists(createdAt)",
     ExpressionAttributeValues: {
-      ':updatedAt' :  new Date().toISOString(),
-      ':value': activate
+      ":updatedAt": new Date().toISOString(),
+      ":value": activate
     }
   };
   try {
     await dynamoDb.update(params).promise();
     return {
       account_id,
-      result: 'OK'
+      result: "OK"
     };
   } catch (error) {
     return {
@@ -78,7 +78,7 @@ export const updateDefaultProfile = async ({
   origins
 }: any) => {
   if (!onhand && !pending) {
-    throw new Error('required attributes not defined'!);
+    throw new Error("required attributes not defined"!);
   }
 
   var params = {
@@ -87,11 +87,12 @@ export const updateDefaultProfile = async ({
       id: account_id,
       sort_key: Profile.DEFAULT
     },
-    UpdateExpression: 'SET updatedAt = :updatedAt,',
-    ConditionExpression: 'attribute_exists(createdAt) and activated = :activated',
+    UpdateExpression: "SET updatedAt = :updatedAt,",
+    ConditionExpression:
+      "attribute_exists(createdAt) and activated = :activated",
     ExpressionAttributeValues: {
-      ':updatedAt' :  new Date().toISOString(),
-      ':activated' : true
+      ":updatedAt": new Date().toISOString(),
+      ":activated": true
     }
   };
 
@@ -100,9 +101,9 @@ export const updateDefaultProfile = async ({
     params.ExpressionAttributeValues = Object.assign(
       {},
       params.ExpressionAttributeValues,
-      { ':onhand' : onhand }
+      { ":onhand": onhand }
     );
-    if(pending){
+    if (pending) {
       params.UpdateExpression = `${params.UpdateExpression},`;
     }
   }
@@ -112,9 +113,9 @@ export const updateDefaultProfile = async ({
     params.ExpressionAttributeValues = Object.assign(
       {},
       params.ExpressionAttributeValues,
-      { ':pending' : pending }
+      { ":pending": pending }
     );
-    if(origins) {
+    if (origins) {
       params.UpdateExpression = `${params.UpdateExpression},`;
     }
   }
@@ -124,14 +125,14 @@ export const updateDefaultProfile = async ({
     params.ExpressionAttributeValues = Object.assign(
       {},
       params.ExpressionAttributeValues,
-      { ':origins' : origins }
+      { ":origins": origins }
     );
   }
   try {
     await dynamoDb.update(params).promise();
     return {
       account_id,
-      result: 'OK'
+      result: "OK"
     };
   } catch (error) {
     return {
@@ -148,15 +149,26 @@ export const getProfile = async ({
 }: any) => {
   let params = {
     TableName: process.env.DYNAMODB_TABLE,
-    KeyConditionExpression: 'id = :id and begins_with(sort_key, :sort_key)',
-    FilterExpression: 'activated = :activated',
+    KeyConditionExpression: "id = :id and begins_with(sort_key, :sort_key)",
     ExpressionAttributeValues: {
-      ':id': account_id,
-      ':sort_key': item_type ? `p@${item_type}` : 'p@',
-      ':activated': deactivated ? !deactivated : true
+      ":id": account_id,
+      ":sort_key": item_type ? `p@${item_type}` : "p@"
     }
   };
 
+  if (Profile.DEFAULT.toString() === `p@${item_type}`) {
+    params = Object.assign({}, params, {
+      FilterExpression: "activated = :activated"
+    });
+
+    params.ExpressionAttributeValues = Object.assign(
+      {},
+      params.ExpressionAttributeValues,
+      { ":activated": deactivated ? !deactivated : true }
+    );
+  }
+
+  console.log(params);
   try {
     const { Count, ScannedCount, Items } = await dynamoDb
       .query(params)
@@ -164,10 +176,10 @@ export const getProfile = async ({
 
     const items = Items.reduce(
       (accItem, currItem) => {
-        if (!!currItem['sort_key'].match(/^p@D/)) {
+        if (!!currItem["sort_key"].match(/^p@D/)) {
           const { id, sort_key, ...rest } = currItem;
           accItem.default = { ...rest };
-        } else if (!!currItem['sort_key'].match(/^p@P/)) {
+        } else if (!!currItem["sort_key"].match(/^p@P/)) {
           const { id, sort_key, ...rest } = currItem;
           accItem.plantations = [
             ...accItem.plantations,
@@ -184,7 +196,7 @@ export const getProfile = async ({
       scannedCount: ScannedCount,
       account_id: account_id,
       items,
-      result: 'OK'
+      result: "OK"
     };
   } catch (error) {
     return {
@@ -214,17 +226,17 @@ export const createPlantationProfile = async ({
   };
 
   try {
-    const getProfilesResult = await getProfile({ account_id, type: 'DEFAULT' });
+    const getProfilesResult = await getProfile({ account_id, type: "DEFAULT" });
     if (getProfilesResult.count === 0)
       throw new Error(
-        'standard profile for this id does not exist or inactive!'
+        "standard profile for this id does not exist or inactive!"
       );
 
     await dynamoDb.put(params).promise();
     return {
       account_id,
       plantation_id: profile,
-      result: 'OK'
+      result: "OK"
     };
   } catch (error) {
     return {
