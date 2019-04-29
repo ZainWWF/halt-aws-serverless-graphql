@@ -1,10 +1,10 @@
 import { makeExecutableSchema } from "graphql-tools";
 import {
-  schema as creatProfileSchema,
-  typeResolvers as createProfileTypeResolvers,
-  queryResolvers as createProfileQueryResolvers,
-  mutationResolvers as createProfileMUtationResolvers
-} from "./schemas/createProfile";
+  schema as profileSchema,
+  typeResolvers as profileTypeResolvers,
+  queryResolvers as profileQueryResolvers,
+  mutationResolvers as profileMutationResolvers
+} from "./schemas/profile";
 
 const rootSchema = [
   `
@@ -20,20 +20,20 @@ const rootSchema = [
       }
   `
 ];
-const schema = [...rootSchema, ...creatProfileSchema];
+const schema = [...rootSchema, ...profileSchema];
 
 const resolvers = {
-  ...createProfileTypeResolvers,
+  ...profileTypeResolvers,
 
   Query: {
     testMessage: (): string => {
       return "Hello World!";
     },
-    ...createProfileQueryResolvers
+    ...profileQueryResolvers
   },
 
   Mutation: {
-    ...createProfileMUtationResolvers
+    ...profileMutationResolvers
   }
 };
 

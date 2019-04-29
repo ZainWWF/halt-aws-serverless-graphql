@@ -145,7 +145,6 @@ export const updateDefaultProfile = async ({
 export const getProfile = async ({
   account_id,
   item_type,
-  deactivated
 }: any) => {
   let params = {
     TableName: process.env.DYNAMODB_TABLE,
@@ -156,19 +155,6 @@ export const getProfile = async ({
     }
   };
 
-  if (Profile.DEFAULT.toString() === `p@${item_type}`) {
-    params = Object.assign({}, params, {
-      FilterExpression: "activated = :activated"
-    });
-
-    params.ExpressionAttributeValues = Object.assign(
-      {},
-      params.ExpressionAttributeValues,
-      { ":activated": deactivated ? !deactivated : true }
-    );
-  }
-
-  console.log(params);
   try {
     const { Count, ScannedCount, Items } = await dynamoDb
       .query(params)
@@ -212,10 +198,10 @@ export const createPlantationProfile = async ({
   certificaton
 }: any) => {
   const profile = `${Profile.PLANTATION}#${uuidv4()}`;
-  console.log(management);
   const params = {
     TableName: process.env.DYNAMODB_TABLE,
     Item: {
+      type: `#${certificaton}|${management.type}|${association.type}`, 
       id: account_id,
       sort_key: profile,
       management,
@@ -245,3 +231,84 @@ export const createPlantationProfile = async ({
     };
   }
 };
+
+
+export const updatePlantationProfile = async ({
+  account_id,
+  plantation_id,
+  management,
+  association,
+  certificaton
+}: any) => {
+
+  if (!management && !association && !certificaton) {
+    throw new Error("required attributes not defined"!);
+  }
+
+  var params = {
+    TableName: process.env.DYNAMODB_TABLE,
+    IndexName : process.env.GS1,
+    Key: {
+      id : account_id,
+      sort_key : plantation_id,
+    },
+    UpdateExpression: "SET updatedAt = :updatedAt, #type = :type,",
+    ExpressionAttributeNames: {
+      "#type" : 'type'
+    },
+    ExpressionAttributeValues: {
+      ":updatedAt": new Date().toISOString(),
+      ":type" : `#${certificaton}|${management.type}|${association.type}`
+    }
+  };
+
+  if (management) {
+    params.UpdateExpression = `${params.UpdateExpression} management = :management`;
+    params.ExpressionAttributeValues = Object.assign(
+      {},
+      params.ExpressionAttributeValues,
+      { ":management": {...management} }
+    );
+    if (association) {
+      params.UpdateExpression = `${params.UpdateExpression},`;
+    }
+  }
+
+  if (association) {
+    params.UpdateExpression = `${params.UpdateExpression} association = :association`;
+    params.ExpressionAttributeValues = Object.assign(
+      {},
+      params.ExpressionAttributeValues,
+      { ":association": association }
+    );
+    if (certificaton) {
+      params.UpdateExpression = `${params.UpdateExpression},`;
+    }
+  }
+
+  if (certificaton) {
+    params.UpdateExpression = `${params.UpdateExpression} certificaton = :certificaton`;
+    params.ExpressionAttributeValues = Object.assign(
+      {},
+      params.ExpressionAttributeValues,
+      { ":certificaton": certificaton }
+    );
+  }
+
+  console.log(params)
+
+  try {
+    await dynamoDb.update(params).promise();
+    return {
+      plantation_id,
+      result: "OK"
+    };
+  } catch (error) {
+    return {
+      plantation_id,
+      result: new Error(error.message)
+    };
+  }
+
+
+}

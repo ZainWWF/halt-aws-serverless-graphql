@@ -3,12 +3,12 @@ import {
   createPlantationProfile,
   getProfile,
   setActivateStateDefaultProfile,
-  updateDefaultProfile
+  updateDefaultProfile,
+  updatePlantationProfile
 } from "../resolvers/dynamo-db";
 
 export const schema = [
   `
-
 enum ProfileItemEnum {
   DEFAULT
   PLANTATION
@@ -38,9 +38,9 @@ enum PlantationCertificationEnum{
 
 input PlantationBuyerAssociationInput{
   type: PlantationBuyerAssociationEnum! 
-  plasma: String
-  mill: String
-  agreement: String
+  plasma: String!
+  mill: String!
+  agreement: String!
 }
 
 
@@ -54,8 +54,8 @@ type PlantationBuyerAssociation{
 
 input PlantationManagementInput {
   type: PlantationManagementEnum!
-  concession_company: String
-  other_details: String
+  concession_company: String!
+  other_details: String!
 
 }
 
@@ -86,6 +86,7 @@ type DefaultItems {
 }
 
 type  PlantationItems {
+  type: String!
   plantation_id: ID!
   createdAt : String!
   management : PlantationManagement!
@@ -93,11 +94,20 @@ type  PlantationItems {
   certificaton: PlantationCertificationEnum!
 }
 
-type ProfileItems {
+union ProfileItems = ProfileAllItems | ProfileDefaultItems | ProfilePlantationItems
+
+type ProfileAllItems {
   default : DefaultItems
   plantations : [PlantationItems]
 }
 
+type ProfileDefaultItems  {
+  default : DefaultItems
+}
+
+type ProfilePlantationItems {
+  plantations : [PlantationItems]
+}
 
 type Profiles {
   account_id: ID!
@@ -128,6 +138,11 @@ type createPlantationProfileResult {
   result: String!
 }
 
+type updatePlantationProfileResult {
+  plantation_id: ID
+  result: String!
+}
+
 extend type Mutation {
   createDefaultProfile( 
     account_id: ID!
@@ -151,24 +166,47 @@ extend type Mutation {
     association: PlantationBuyerAssociationInput! 
     certificaton: PlantationCertificationEnum!
   ) : createPlantationProfileResult!
+
+  updatePlantationProfile( 
+    account_id: ID!
+    plantation_id: ID!
+    management : PlantationManagementInput!
+    association: PlantationBuyerAssociationInput!
+    certificaton: PlantationCertificationEnum!
+  ) : updatePlantationProfileResult!
 }
 
 extend type Query {
     getProfile(
       account_id: ID!
-      item_type: ProfileItemEnum
-      deleted : Boolean
-      deactivated: Boolean    
+      item_type: ProfileItemEnum  
       ) : Profiles!
 }
 
 `
 ];
 
-export const typeResolvers = {};
+export const typeResolvers = {
+  ProfileItems: {
+    __resolveType(_, context) {
+      const item_type = JSON.parse(context.event.body)["query"].match(
+        /item_type: (.*)\)/
+      );
+
+      if (!item_type) {
+        return "ProfileAllItems";
+      } else if (item_type[1] === "DEFAULT") {
+        return "ProfileDefaultItems";
+      } else if (item_type[1] === "PLANTATION") {
+        return "ProfilePlantationItems";
+      }
+    }
+  }
+};
+
 export const queryResolvers = {
-  getProfile: async (_, { account_id, item_type, deactivated }) => {
-    return getProfile({ account_id, item_type, deactivated });
+  getProfile: async (_, { account_id, item_type }) => {
+    return getProfile({ account_id, item_type });
   }
 };
 export const mutationResolvers = {
@@ -193,5 +231,9 @@ export const mutationResolvers = {
       association,
       certificaton
     });
+  },
+
+  updatePlantationProfile: async(_, {account_id, plantation_id, management, association, certificaton})=>{
+    return updatePlantationProfile({account_id, plantation_id, management, association, certificaton})
   }
 };
