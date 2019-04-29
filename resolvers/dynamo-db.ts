@@ -8,7 +8,7 @@ const dynamoDb = new DynamoDB.DocumentClient({
   endpoint: "http://localhost:8000"
 });
 
-export const createDefaultProfile = async ({ account_id }: any) => {
+export const createDefaultProfile = async (account_id: string) => {
   const params = {
     TableName: process.env.DYNAMODB_TABLE,
     Item: {
@@ -40,10 +40,10 @@ export const createDefaultProfile = async ({ account_id }: any) => {
   }
 };
 
-export const setActivateStateDefaultProfile = async ({
-  account_id,
-  activate
-}: any) => {
+export const setActivateStateDefaultProfile = async (
+  account_id: string,
+  activate: boolean
+) => {
   var params = {
     TableName: process.env.DYNAMODB_TABLE,
     Key: {
@@ -71,12 +71,12 @@ export const setActivateStateDefaultProfile = async ({
   }
 };
 
-export const updateDefaultProfile = async ({
-  account_id,
-  onhand,
-  pending,
-  origins
-}: any) => {
+export const updateDefaultProfile = async (
+  account_id: string,
+  onhand: number,
+  pending: number,
+  origins: [any]
+) => {
   if (!onhand && !pending) {
     throw new Error("required attributes not defined"!);
   }
@@ -142,10 +142,7 @@ export const updateDefaultProfile = async ({
   }
 };
 
-export const getProfile = async ({
-  account_id,
-  item_type,
-}: any) => {
+export const getProfile = async (account_id: string, item_type: string) => {
   let params = {
     TableName: process.env.DYNAMODB_TABLE,
     KeyConditionExpression: "id = :id and begins_with(sort_key, :sort_key)",
@@ -191,17 +188,17 @@ export const getProfile = async ({
   }
 };
 
-export const createPlantationProfile = async ({
-  account_id,
-  management,
-  association,
-  certificaton
-}: any) => {
+export const createPlantationProfile = async (
+  account_id: string,
+  management: any,
+  association: any,
+  certificaton: string
+) => {
   const profile = `${Profile.PLANTATION}#${uuidv4()}`;
   const params = {
     TableName: process.env.DYNAMODB_TABLE,
     Item: {
-      type: `#${certificaton}|${management.type}|${association.type}`, 
+      type: `#${certificaton}|${management.type}|${association.type}`,
       id: account_id,
       sort_key: profile,
       management,
@@ -212,7 +209,7 @@ export const createPlantationProfile = async ({
   };
 
   try {
-    const getProfilesResult = await getProfile({ account_id, type: "DEFAULT" });
+    const getProfilesResult = await getProfile(account_id, "DEFAULT");
     if (getProfilesResult.count === 0)
       throw new Error(
         "standard profile for this id does not exist or inactive!"
@@ -232,42 +229,42 @@ export const createPlantationProfile = async ({
   }
 };
 
-
-export const updatePlantationProfile = async ({
-  account_id,
-  plantation_id,
-  management,
-  association,
-  certificaton
-}: any) => {
-
+export const updatePlantationProfile = async (
+  account_id : string,
+  plantation_id: string,
+  management: any,
+  association : any,
+  certificaton : string
+) => {
   if (!management && !association && !certificaton) {
     throw new Error("required attributes not defined"!);
   }
 
   var params = {
     TableName: process.env.DYNAMODB_TABLE,
-    IndexName : process.env.GS1,
+    IndexName: process.env.GS1,
     Key: {
-      id : account_id,
-      sort_key : plantation_id,
+      id: account_id,
+      sort_key: plantation_id
     },
     UpdateExpression: "SET updatedAt = :updatedAt, #type = :type,",
     ExpressionAttributeNames: {
-      "#type" : 'type'
+      "#type": "type"
     },
     ExpressionAttributeValues: {
       ":updatedAt": new Date().toISOString(),
-      ":type" : `#${certificaton}|${management.type}|${association.type}`
+      ":type": `#${certificaton}|${management.type}|${association.type}`
     }
   };
 
   if (management) {
-    params.UpdateExpression = `${params.UpdateExpression} management = :management`;
+    params.UpdateExpression = `${
+      params.UpdateExpression
+    } management = :management`;
     params.ExpressionAttributeValues = Object.assign(
       {},
       params.ExpressionAttributeValues,
-      { ":management": {...management} }
+      { ":management": { ...management } }
     );
     if (association) {
       params.UpdateExpression = `${params.UpdateExpression},`;
@@ -275,7 +272,9 @@ export const updatePlantationProfile = async ({
   }
 
   if (association) {
-    params.UpdateExpression = `${params.UpdateExpression} association = :association`;
+    params.UpdateExpression = `${
+      params.UpdateExpression
+    } association = :association`;
     params.ExpressionAttributeValues = Object.assign(
       {},
       params.ExpressionAttributeValues,
@@ -287,7 +286,9 @@ export const updatePlantationProfile = async ({
   }
 
   if (certificaton) {
-    params.UpdateExpression = `${params.UpdateExpression} certificaton = :certificaton`;
+    params.UpdateExpression = `${
+      params.UpdateExpression
+    } certificaton = :certificaton`;
     params.ExpressionAttributeValues = Object.assign(
       {},
       params.ExpressionAttributeValues,
@@ -295,7 +296,7 @@ export const updatePlantationProfile = async ({
     );
   }
 
-  console.log(params)
+  console.log(params);
 
   try {
     await dynamoDb.update(params).promise();
@@ -309,6 +310,4 @@ export const updatePlantationProfile = async ({
       result: new Error(error.message)
     };
   }
-
-
-}
+};

@@ -206,34 +206,43 @@ export const typeResolvers = {
 
 export const queryResolvers = {
   getProfile: async (_, { account_id, item_type }) => {
-    return getProfile({ account_id, item_type });
+    return getProfile(account_id, item_type);
   }
 };
 export const mutationResolvers = {
   createDefaultProfile: async (_, { account_id }) => {
-    return createDefaultProfile({ account_id });
+    return createDefaultProfile(account_id);
   },
 
   updateDefaultProfile: async (_, { account_id, onhand, pending, origins }) => {
-    return updateDefaultProfile({ account_id, onhand, pending, origins });
+    return updateDefaultProfile(account_id, onhand, pending, origins);
   },
 
   setActivateStateDefaultProfile: async (_, { account_id, activate }) => {
-    return setActivateStateDefaultProfile({ account_id, activate });
+    return setActivateStateDefaultProfile(account_id, activate);
   },
   createPlantationProfile: async (
     _,
     { account_id, management, association, certificaton }
   ) => {
-    return createPlantationProfile({
+    return createPlantationProfile(
       account_id,
       management,
       association,
       certificaton
-    });
+    );
   },
 
-  updatePlantationProfile: async(_, {account_id, plantation_id, management, association, certificaton})=>{
-    return updatePlantationProfile({account_id, plantation_id, management, association, certificaton})
+  updatePlantationProfile: async (
+    _,
+    { account_id, plantation_id, management, association, certificaton }
+  ) => {
+    return updatePlantationProfile(
+      account_id,
+      plantation_id,
+      management,
+      association,
+      certificaton
+    );
   }
 };
