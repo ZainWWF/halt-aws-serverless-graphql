@@ -1,5 +1,5 @@
 import { ApolloServer } from "apollo-server-lambda";
-import { DynamoDB } from "aws-sdk";
+import * as dynamodb from 'serverless-dynamodb-client'
 import executableSchema from "./schemas/executable-schema";
 
 const server = new ApolloServer({
@@ -8,10 +8,8 @@ const server = new ApolloServer({
     headers: event.headers,
     functionName: context.functionName,
     event,
-    dynamoDb: new DynamoDB.DocumentClient({
-      region: "localhost",
-      endpoint: "http://localhost:8000"
-    })
+    dynamoDb: dynamodb.doc
+
   })
 });
 

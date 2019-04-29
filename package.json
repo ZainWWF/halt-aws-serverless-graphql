@@ -11,6 +11,7 @@
     "aws-sdk": "^2.443.0",
     "dotenv": "^7.0.0",
     "graphql": "^14.2.1",
+    "serverless-dynamodb-client": "0.0.2",
     "source-map-support": "^0.5.10",
     "uuid": "^3.3.2"
   },
