@@ -19,6 +19,9 @@ provider:
   runtime: nodejs8.10
   stage: ${opt:stage, 'dev'} # Set the default stage used. Default is dev
   region: ap-southeast-1 # Overwrite the default region used. Default is us-east-1
+  tags:
+    PROJECT: halt
+    OWNER: comms
   profile: halt-app-amplify-profile # The default profile to use with this service
   environment:
     DYNAMODB_TABLE: ${self:service}-${self:provider.stage}-${self:custom.tableName}
@@ -40,6 +43,8 @@ functions:
   graphql:
     # this is formatted as <FILENAME>.<HANDLER>
     handler: graphql.graphqlHandler
+    tags:
+      APP_ROLE: graphql server
     events:
     - http:
         path: graphql
