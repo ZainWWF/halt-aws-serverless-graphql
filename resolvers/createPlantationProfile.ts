@@ -15,6 +15,7 @@ export const createPlantationProfile = async (
       management,
       association,
       certificaton,
+      transferCount : 0,
       createdAt: new Date().toISOString()
     }
   };

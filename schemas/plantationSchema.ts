@@ -59,13 +59,14 @@ export const schema = [
     percent : Float!
   }
   
-  type  PlantationItems {
+  type PlantationItems {
     type: String!
     plantation_id: ID!
-    createdAt : String!
-    management : PlantationManagement!
+    createdAt: String!
+    management: PlantationManagement!
     association: PlantationBuyerAssociation! 
     certificaton: PlantationCertificationEnum!
+    transferCount: Int!
   }
 
   type ProfilePlantationItems {
@@ -83,6 +84,11 @@ export const schema = [
     result: String!
   }
 
+  type removePlantationProfileResult {
+    plantation_id: ID
+    result: String!
+  }
+
   extend type Mutation {    
     createPlantationProfile( 
       account_id: ID!
@@ -91,13 +97,18 @@ export const schema = [
       certificaton: PlantationCertificationEnum!
     ) : createPlantationProfileResult!
   
-    updatePlantationProfile( 
+    updatePlantationProfile (
       account_id: ID!
       plantation_id: ID!
       management : PlantationManagementInput!
       association: PlantationBuyerAssociationInput!
       certificaton: PlantationCertificationEnum!
     ) : updatePlantationProfileResult!
+
+    removePlantationProfile(
+      account_id: ID!
+      plantation_id: ID!
+    ) : removePlantationProfileResult!
   }
 `
 ];

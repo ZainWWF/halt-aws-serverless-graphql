@@ -63,6 +63,7 @@ export const updatePlantationProfile = async (
     );
   }
 
+
   try {
     await dynamoDb.update(params).promise();
     return {

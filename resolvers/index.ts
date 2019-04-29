@@ -5,6 +5,7 @@ import { updatePlantationProfile } from "./updatePlantationProfile";
 import { createPlantationProfile } from "./createPlantationProfile";
 import { updateDefaultProfile } from "./updateDefaultProfile";
 import { ProfileItems } from "./typeProfileItems";
+import { removePlantationProfile } from "./removePlantationProfile";
 
 const typeResolvers = {
   ProfileItems
@@ -19,7 +20,8 @@ const mutationResolvers = {
   updateDefaultProfile,
   setActivateStateDefaultProfile,
   createPlantationProfile,
-  updatePlantationProfile
+  updatePlantationProfile,
+  removePlantationProfile
 };
 
 export const resolvers = {
