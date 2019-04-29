@@ -12,6 +12,7 @@ custom:
   webpack:
     includeModules : true
   tableName: accounts
+  globalSecondaryIndex1: sort_key_GSI
 
 provider:
   name: aws
@@ -20,7 +21,8 @@ provider:
   region: ap-southeast-1 # Overwrite the default region used. Default is us-east-1
   profile: halt-app-amplify-profile # The default profile to use with this service
   environment:
-    DYNAMODB_TABLE: ${self:service}-${self:provider.stage}-${self:custom.tableName}  
+    DYNAMODB_TABLE: ${self:service}-${self:provider.stage}-${self:custom.tableName}
+    GS1: ${self:custom.globalSecondaryIndex1}  
   iamRoleStatements:
     - Effect: "Allow"
       Action:
@@ -59,6 +61,8 @@ resources:
             AttributeType: S
           - AttributeName: sort_key
             AttributeType: S 
+          - AttributeName: type
+            AttributeType: S 
         KeySchema:
           - AttributeName: id
             KeyType: HASH
@@ -66,4 +70,16 @@ resources:
             KeyType: RANGE 
         ProvisionedThroughput:
           ReadCapacityUnits: 1
-          WriteCapacityUnits: 1        
+          WriteCapacityUnits: 1
+        GlobalSecondaryIndexes:
+        - IndexName: ${self:provider.environment.GS1} 
+          KeySchema:
+          - AttributeName: sort_key
+            KeyType: HASH
+          - AttributeName: type
+            KeyType: RANGE  
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: 1
+            WriteCapacityUnits: 1          
