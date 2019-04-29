@@ -1,11 +1,4 @@
-"use strict";
-import { DocumentClient } from "aws-sdk/clients/dynamodb";
-
-export const getProfile = async (
-  account_id: string,
-  item_type: string,
-  dynamoDb: DocumentClient
-) => {
+export const getProfile = async (_, { account_id, item_type }, { dynamoDb }) => {
   let params = {
     TableName: process.env.DYNAMODB_TABLE,
     KeyConditionExpression: "id = :id and begins_with(sort_key, :sort_key)",

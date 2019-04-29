@@ -1,10 +1,10 @@
 "use strict";
-import { DocumentClient } from "aws-sdk/clients/dynamodb";
+
 import Profile from "../types/profile";
 
 
 
-export const createDefaultProfile = async (account_id: string, dynamoDb:DocumentClient ) => {
+export const createDefaultProfile = async (_, { account_id }, { dynamoDb }) => {
   const params = {
     TableName: process.env.DYNAMODB_TABLE,
     Item: {

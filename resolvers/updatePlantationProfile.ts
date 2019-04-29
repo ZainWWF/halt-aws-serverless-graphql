@@ -1,13 +1,7 @@
-"use strict";
-import { DocumentClient } from "aws-sdk/clients/dynamodb";
-
 export const updatePlantationProfile = async (
-  account_id : string,
-  plantation_id: string,
-  management: any,
-  association : any,
-  certificaton : string,
-  dynamoDb:DocumentClient
+  _,
+  { account_id, plantation_id, management, association, certificaton },
+  { dynamoDb }
 ) => {
   if (!management && !association && !certificaton) {
     throw new Error("required attributes not defined"!);

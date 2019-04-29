@@ -1,6 +1,6 @@
 import { ApolloServer } from "apollo-server-lambda";
 import { DynamoDB } from "aws-sdk";
-import executableSchema from "./executable-schema";
+import executableSchema from "./schemas/executable-schema";
 
 const server = new ApolloServer({
   schema: executableSchema,
