@@ -1,19 +1,16 @@
 "use strict";
-import { DynamoDB } from "aws-sdk";
+import { DocumentClient } from "aws-sdk/clients/dynamodb";
 import * as uuidv4 from "uuid/v4";
 import Profile from "../types/profile";
 
-const dynamoDb = new DynamoDB.DocumentClient({
-  region: "localhost",
-  endpoint: "http://localhost:8000"
-});
 
-export const createDefaultProfile = async (account_id: string) => {
+
+export const createDefaultProfile = async (account_id: string, dynamoDb:DocumentClient ) => {
   const params = {
     TableName: process.env.DYNAMODB_TABLE,
     Item: {
       id: account_id,
-      sort_key: Profile.DEFAULT,
+      sort_key: `p@${Profile.DEFAULT}`,
       onhand: 0,
       pending: 0,
       origins: [],
@@ -22,7 +19,7 @@ export const createDefaultProfile = async (account_id: string) => {
     },
     ConditionExpression: "NOT contains(sort_key, :profile)",
     ExpressionAttributeValues: {
-      ":profile": Profile.DEFAULT
+      ":profile": `p@${Profile.DEFAULT}`,
     }
   };
 
@@ -42,13 +39,14 @@ export const createDefaultProfile = async (account_id: string) => {
 
 export const setActivateStateDefaultProfile = async (
   account_id: string,
-  activate: boolean
+  activate: boolean,
+  dynamoDb:DocumentClient
 ) => {
   var params = {
     TableName: process.env.DYNAMODB_TABLE,
     Key: {
       id: account_id,
-      sort_key: Profile.DEFAULT
+      sort_key: `p@${Profile.DEFAULT}`,
     },
     UpdateExpression: "SET updatedAt = :updatedAt, activated = :value",
     ConditionExpression: "attribute_exists(createdAt)",
@@ -75,7 +73,8 @@ export const updateDefaultProfile = async (
   account_id: string,
   onhand: number,
   pending: number,
-  origins: [any]
+  origins: [any],
+  dynamoDb:DocumentClient
 ) => {
   if (!onhand && !pending) {
     throw new Error("required attributes not defined"!);
@@ -85,7 +84,7 @@ export const updateDefaultProfile = async (
     TableName: process.env.DYNAMODB_TABLE,
     Key: {
       id: account_id,
-      sort_key: Profile.DEFAULT
+      sort_key: `p@${Profile.DEFAULT}`,
     },
     UpdateExpression: "SET updatedAt = :updatedAt,",
     ConditionExpression:
@@ -142,7 +141,7 @@ export const updateDefaultProfile = async (
   }
 };
 
-export const getProfile = async (account_id: string, item_type: string) => {
+export const getProfile = async (account_id: string, item_type: string,  dynamoDb:DocumentClient) => {
   let params = {
     TableName: process.env.DYNAMODB_TABLE,
     KeyConditionExpression: "id = :id and begins_with(sort_key, :sort_key)",
@@ -192,9 +191,10 @@ export const createPlantationProfile = async (
   account_id: string,
   management: any,
   association: any,
-  certificaton: string
+  certificaton: string,
+  dynamoDb:DocumentClient
 ) => {
-  const profile = `${Profile.PLANTATION}#${uuidv4()}`;
+  const profile = `p@${Profile.PLANTATION}#${uuidv4()}`;
   const params = {
     TableName: process.env.DYNAMODB_TABLE,
     Item: {
@@ -209,7 +209,7 @@ export const createPlantationProfile = async (
   };
 
   try {
-    const getProfilesResult = await getProfile(account_id, "DEFAULT");
+    const getProfilesResult = await getProfile(account_id, Profile.DEFAULT,  dynamoDb);
     if (getProfilesResult.count === 0)
       throw new Error(
         "standard profile for this id does not exist or inactive!"
@@ -234,7 +234,8 @@ export const updatePlantationProfile = async (
   plantation_id: string,
   management: any,
   association : any,
-  certificaton : string
+  certificaton : string,
+  dynamoDb:DocumentClient
 ) => {
   if (!management && !association && !certificaton) {
     throw new Error("required attributes not defined"!);
@@ -295,8 +296,6 @@ export const updatePlantationProfile = async (
       { ":certificaton": certificaton }
     );
   }
-
-  console.log(params);
 
   try {
     await dynamoDb.update(params).promise();

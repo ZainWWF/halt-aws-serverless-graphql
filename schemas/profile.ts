@@ -6,6 +6,7 @@ import {
   updateDefaultProfile,
   updatePlantationProfile
 } from "../resolvers/dynamo-db";
+import Profile from "../types/profile";
 
 export const schema = [
   `
@@ -195,9 +196,9 @@ export const typeResolvers = {
 
       if (!item_type) {
         return "ProfileAllItems";
-      } else if (item_type[1] === "DEFAULT") {
+      } else if (item_type[1] === Profile.DEFAULT) {
         return "ProfileDefaultItems";
-      } else if (item_type[1] === "PLANTATION") {
+      } else if (item_type[1] === Profile.PLANTATION) {
         return "ProfilePlantationItems";
       }
     }
@@ -205,44 +206,56 @@ export const typeResolvers = {
 };
 
 export const queryResolvers = {
-  getProfile: async (_, { account_id, item_type }) => {
-    return getProfile(account_id, item_type);
+  getProfile: async (_, { account_id, item_type }, { dynamoDb }) => {
+    return getProfile(account_id, item_type, dynamoDb);
   }
 };
 export const mutationResolvers = {
-  createDefaultProfile: async (_, { account_id }) => {
-    return createDefaultProfile(account_id);
+  createDefaultProfile: async (_, { account_id }, { dynamoDb }) => {
+    return createDefaultProfile(account_id, dynamoDb);
   },
 
-  updateDefaultProfile: async (_, { account_id, onhand, pending, origins }) => {
-    return updateDefaultProfile(account_id, onhand, pending, origins);
+  updateDefaultProfile: async (
+    _,
+    { account_id, onhand, pending, origins },
+    { dynamoDb }
+  ) => {
+    return updateDefaultProfile(account_id, onhand, pending, origins, dynamoDb);
   },
 
-  setActivateStateDefaultProfile: async (_, { account_id, activate }) => {
-    return setActivateStateDefaultProfile(account_id, activate);
+  setActivateStateDefaultProfile: async (
+    _,
+    { account_id, activate },
+    { dynamoDb }
+  ) => {
+    return setActivateStateDefaultProfile(account_id, activate, dynamoDb);
   },
   createPlantationProfile: async (
     _,
-    { account_id, management, association, certificaton }
+    { account_id, management, association, certificaton },
+    { dynamoDb }
   ) => {
     return createPlantationProfile(
       account_id,
       management,
       association,
-      certificaton
+      certificaton,
+      dynamoDb
     );
   },
 
   updatePlantationProfile: async (
     _,
-    { account_id, plantation_id, management, association, certificaton }
+    { account_id, plantation_id, management, association, certificaton },
+    { dynamoDb }
   ) => {
     return updatePlantationProfile(
       account_id,
       plantation_id,
       management,
       association,
-      certificaton
+      certificaton,
+      dynamoDb
     );
   }
 };

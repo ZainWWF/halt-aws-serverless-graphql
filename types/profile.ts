@@ -1,11 +1,11 @@
 enum Profile {
-  DEFAULT = "p@DEFAULT",
-  PLANTATION = "p@PLANTATION",
-  OWNER = "p@OWNER",
-  OWNER_REP = "p@OWNER_REP",
-  MILL = "p@MILL",
-  MILL_REP = "p@MILL_REP",
-  MILL_ADMIN = "p@MILL_ADMIN"
+  DEFAULT = "DEFAULT",
+  PLANTATION = "PLANTATION",
+  OWNER = "OWNER",
+  OWNER_REP = "OWNER_REP",
+  MILL = "MILL",
+  MILL_REP = "MILL_REP",
+  MILL_ADMIN = "MILL_ADMIN"
 }
 
 export default Profile;
