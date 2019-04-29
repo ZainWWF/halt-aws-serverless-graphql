@@ -1,10 +1,10 @@
 import { makeExecutableSchema } from "graphql-tools";
 import {
-  schema as profileSchema,
   typeResolvers as profileTypeResolvers,
   queryResolvers as profileQueryResolvers,
   mutationResolvers as profileMutationResolvers
-} from "./schemas/profile";
+} from "./resolvers";
+import { schema as profileSchema } from "./schemas";
 
 const rootSchema = [
   `
