@@ -1,11 +1,13 @@
 import { makeExecutableSchema } from "graphql-tools";
 import { resolvers } from "../resolvers";
-import { schema as profileSchema } from ".";
+import {schema as plantationSchema} from './plantationSchema';
+import {schema as defaultSchema} from './defaultSchema';
+
 
 const rootSchema = [
   `
       type Query {
-          testMessage: String!
+        testMessage: String!
       }
       type Mutation {
         testMessage(name: String): String!
@@ -16,7 +18,7 @@ const rootSchema = [
       }
   `
 ];
-const schema = [...rootSchema, ...profileSchema];
+const schema = [...rootSchema, ...plantationSchema, ...defaultSchema];
 
 const executableSchema = makeExecutableSchema({
   typeDefs: schema,
