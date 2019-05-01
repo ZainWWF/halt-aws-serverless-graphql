@@ -13,12 +13,23 @@ custom:
     includeModules : true
   tableName: accounts
   globalSecondaryIndex1: sort_key_GSI
+  tableThroughputs:
+    prod: 5
+    default: 1
+  tableThroughput: ${self:custom.tableThroughputs.dev, self:custom.tableThroughputs.default}
+  userPoolUsername:
+    prod: username
+    dev: email
+  userPoolAutoVerified:
+    prod: email
+    dev: email    
 
 provider:
   name: aws
   runtime: nodejs8.10
   stage: ${opt:stage, 'dev'} # Set the default stage used. Default is dev
   region: ap-southeast-1 # Overwrite the default region used. Default is us-east-1
+  deploymentPrefix: halt-proj
   tags:
     PROJECT: halt
     OWNER: comms
@@ -35,9 +46,7 @@ provider:
        - dynamodb:UpdateItem
        - dynamodb:DeleteItem
       Resource:
-        Fn::GetAtt:
-          - accountsTable
-          - Arn
+        Fn::GetAtt: [accountsTable, Arn]
 
 functions:
   graphql:
@@ -50,41 +59,21 @@ functions:
         path: graphql
         method: post
         cors: true
+        authorizer: aws_iam
     - http:
         path: graphql
         method: get
         cors: true
+        authorizer: aws_iam
 
+# Create our resources with separate CloudFormation templates
 resources:
-  Resources:
-    accountsTable:
-      Type: AWS::DynamoDB::Table
-      Properties:
-        TableName: ${self:provider.environment.DYNAMODB_TABLE}
-        AttributeDefinitions:
-          - AttributeName: id
-            AttributeType: S
-          - AttributeName: sort_key
-            AttributeType: S 
-          - AttributeName: type
-            AttributeType: S 
-        KeySchema:
-          - AttributeName: id
-            KeyType: HASH
-          - AttributeName: sort_key
-            KeyType: RANGE 
-        ProvisionedThroughput:
-          ReadCapacityUnits: 1
-          WriteCapacityUnits: 1
-        GlobalSecondaryIndexes:
-        - IndexName: ${self:provider.environment.GS1} 
-          KeySchema:
-          - AttributeName: sort_key
-            KeyType: HASH
-          - AttributeName: type
-            KeyType: RANGE  
-          Projection:
-            ProjectionType: ALL
-          ProvisionedThroughput:
-            ReadCapacityUnits: 1
-            WriteCapacityUnits: 1          
+  # API Gateway Errors
+  - ${file(resources/api-gateway-errors.yml)}
+  # DynamoDB
+  - ${file(resources/dynamodb-table.yml)}
+  # S3
+  - ${file(resources/s3-bucket.yml)}
+  # Cognito
+  - ${file(resources/cognito-user-pool.yml)}
+  - ${file(resources/cognito-identity-pool.yml)}

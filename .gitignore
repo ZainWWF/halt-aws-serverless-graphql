@@ -10,3 +10,4 @@ jspm_packages
 # Webpack directories
 .webpack
 
+.api-gateway-test.md

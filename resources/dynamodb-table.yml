@@ -1,0 +1,32 @@
+Resources:
+    accountsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.DYNAMODB_TABLE}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: sort_key
+            AttributeType: S 
+          - AttributeName: type
+            AttributeType: S 
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+          - AttributeName: sort_key
+            KeyType: RANGE 
+        ProvisionedThroughput:
+          ReadCapacityUnits: ${self:custom.tableThroughput}
+          WriteCapacityUnits: ${self:custom.tableThroughput}     
+        GlobalSecondaryIndexes:
+        - IndexName: ${self:provider.environment.GS1} 
+          KeySchema:
+          - AttributeName: sort_key
+            KeyType: HASH
+          - AttributeName: type
+            KeyType: RANGE  
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: ${self:custom.tableThroughput}
+            WriteCapacityUnits: ${self:custom.tableThroughput}        

@@ -1,0 +1,39 @@
+Resources:
+  CognitoUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      # Generate a name based on the stage
+      UserPoolName: ${self:service.name}-${self:provider.stage}-UserPool
+      Schema:
+      - Name: email
+        AttributeDataType: String
+        DeveloperOnlyAttribute: false
+        Mutable: true
+        Required: true
+      - Name: phone_number
+        AttributeDataType: String
+        DeveloperOnlyAttribute: false
+        Mutable: true
+        Required: true
+
+
+  CognitoUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      # Generate an app client name based on the stage
+      ClientName: ${self:service.name}-${self:provider.stage}-UserPoolClient
+      UserPoolId:
+        Ref: CognitoUserPool
+      ExplicitAuthFlows:
+        - ADMIN_NO_SRP_AUTH
+      GenerateSecret: false
+
+# Print out the Id of the User Pool that is created
+Outputs:
+  UserPoolId:
+    Value:
+      Ref: CognitoUserPool
+
+  UserPoolClientId:
+    Value:
+      Ref: CognitoUserPoolClient
