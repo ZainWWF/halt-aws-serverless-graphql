@@ -1,8 +1,8 @@
 {
-  "name": "aws-nodejs-typescript",
+  "name": "halt-serverless-graphl",
   "version": "1.0.0",
-  "description": "Serverless webpack example using Typescript",
-  "main": "handler.js",
+  "description": "Halt serverless api-gateway+lambda with graphql integration",
+  "main": "graphql.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
