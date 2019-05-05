@@ -1,9 +1,43 @@
 Resources:
+  # BEGIN SNS ROLE RESOURCE
+  SNSRole: 
+  # Created to allow the UserPool SMS Config to publish via the Simple Notification Service during MFA Process
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: ${self:service.name}-${self:provider.stage}_sns-role
+      AssumeRolePolicyDocument: 
+        Version: "2012-10-17"
+        Statement: 
+            Effect: "Allow"
+            Principal: 
+              Service: "cognito-idp.amazonaws.com"
+            Action: 
+              - "sts:AssumeRole"
+            Condition: 
+              StringEquals:
+                'sts:ExternalId': ${self:service.name}-${self:provider.stage}_role_external_id 
+      Policies: 
+        - PolicyName: ${self:service.name}-${self:provider.stage}-sns-policy
+          PolicyDocument: 
+            Version: "2012-10-17"
+            Statement: 
+              - Effect: "Allow"
+                Action: 
+                  - "sns:Publish"
+                Resource: "*"
+
   CognitoUserPool:
     Type: AWS::Cognito::UserPool
     Properties:
       # Generate a name based on the stage
       UserPoolName: ${self:service.name}-${self:provider.stage}-UserPool
+      MfaConfiguration: OPTIONAL
+      SmsVerificationMessage: "Your verification code is {####}. "
+      AutoVerifiedAttributes: ["phone_number"] 
+      SmsConfiguration: 
+        SnsCallerArn:
+          Fn::GetAtt: SNSRole.Arn
+        ExternalId: ${self:service.name}-${self:provider.stage}_role_external_id 
       Schema:
       - Name: email
         AttributeDataType: String
