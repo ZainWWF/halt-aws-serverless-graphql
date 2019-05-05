@@ -8,8 +8,7 @@ const server = new ApolloServer({
     headers: event.headers,
     functionName: context.functionName,
     event,
-    dynamoDb: dynamodb.doc
-
+    dynamoDb: dynamodb.doc,
   })
 });
 

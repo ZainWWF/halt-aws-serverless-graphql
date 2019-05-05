@@ -10,7 +10,7 @@ plugins:
 
 custom:
   webpack:
-    includeModules : true
+    includeModules: true
   tableName: accounts
   globalSecondaryIndex1: sort_key_GSI
   tableThroughputs:
@@ -22,7 +22,7 @@ custom:
     dev: email
   userPoolAutoVerified:
     prod: email
-    dev: email    
+    dev: email
 
 provider:
   name: aws
@@ -33,38 +33,55 @@ provider:
   tags:
     PROJECT: halt
     OWNER: comms
-  profile: halt-app-amplify-profile # The default profile to use with this service
+  profile: wwfs-haltproj-web-dev # The default profile to use with this service
   environment:
     DYNAMODB_TABLE: ${self:service}-${self:provider.stage}-${self:custom.tableName}
-    GS1: ${self:custom.globalSecondaryIndex1}  
+    GS1: ${self:custom.globalSecondaryIndex1}
+    USER_POOL_ID:
+       Ref: CognitoUserPool
   iamRoleStatements:
-    - Effect: "Allow"
+    - Effect: 'Allow'
       Action:
-       - dynamodb:Query
-       - dynamodb:GetItem
-       - dynamodb:PutItem
-       - dynamodb:UpdateItem
-       - dynamodb:DeleteItem
+        - dynamodb:Query
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
       Resource:
         Fn::GetAtt: [accountsTable, Arn]
+    - Effect: 'Allow'
+      Action:
+        - cognito-idp:ListUsers
+      Resource:
+        Fn::Join:
+          - ''
+          -
+            - 'arn:aws:cognito-idp:'
+            - Ref: AWS::Region
+            - ':'
+            - Ref: AWS::AccountId
+            - ':userpool/'
+            - Ref: CognitoUserPool  
 
 functions:
+  pre-signup:
+    handler: pre-signup.preSignUpHandler
   graphql:
     # this is formatted as <FILENAME>.<HANDLER>
     handler: graphql.graphqlHandler
     tags:
       APP_ROLE: graphql server
     events:
-    - http:
-        path: graphql
-        method: post
-        cors: true
-        authorizer: aws_iam
-    - http:
-        path: graphql
-        method: get
-        cors: true
-        authorizer: aws_iam
+      - http:
+          path: graphql
+          method: post
+          cors: true
+          authorizer: aws_iam
+      - http:
+          path: graphql
+          method: get
+          cors: true
+          authorizer: aws_iam
 
 # Create our resources with separate CloudFormation templates
 resources:
@@ -77,3 +94,4 @@ resources:
   # Cognito
   - ${file(resources/cognito-user-pool.yml)}
   - ${file(resources/cognito-identity-pool.yml)}
+  - ${file(resources/pre-signup-trigger.yml)}

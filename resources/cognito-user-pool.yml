@@ -25,6 +25,7 @@ Resources:
                 Action: 
                   - "sns:Publish"
                 Resource: "*"
+         
 
   CognitoUserPool:
     Type: AWS::Cognito::UserPool
@@ -33,7 +34,11 @@ Resources:
       UserPoolName: ${self:service.name}-${self:provider.stage}-UserPool
       MfaConfiguration: OPTIONAL
       SmsVerificationMessage: "Your verification code is {####}. "
+      # UsernameAttributes:
+      #   - phone_number
       AutoVerifiedAttributes: ["phone_number"] 
+      # AliasAttributes:
+      #    - phone_number
       SmsConfiguration: 
         SnsCallerArn:
           Fn::GetAtt: SNSRole.Arn
@@ -49,8 +54,18 @@ Resources:
         DeveloperOnlyAttribute: false
         Mutable: true
         Required: true
-
-
+      LambdaConfig: 
+        PreSignUp : 
+          Fn::Join:
+            - ''
+            -
+              - 'arn:aws:lambda:'
+              - Ref: AWS::Region
+              - ':'
+              - Ref: AWS::AccountId
+              - ':'
+              - 'function:${self:service.name}-${self:provider.stage}-pre-signup'
+        
   CognitoUserPoolClient:
     Type: AWS::Cognito::UserPoolClient
     Properties:
@@ -71,3 +86,6 @@ Outputs:
   UserPoolClientId:
     Value:
       Ref: CognitoUserPoolClient
+
+  UserPoolArn:
+    Value: !GetAtt CognitoUserPool.Arn
